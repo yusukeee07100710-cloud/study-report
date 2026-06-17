@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>勉強報告</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    background: #f5f4f0;
+    color: #1a1a1a;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+  header {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 16px 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.5px; }
+  header p { font-size: 11px; color: #888; margin-top: 2px; }
+  .container { padding: 16px; max-width: 480px; margin: 0 auto; }
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid #e8e6e0;
+  }
+  .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .session-block {
+    background: #f8f7f3;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #ece9e2;
+  }
+  .session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .session-num { font-size: 12px; font-weight: 600; color: #555; }
+  .remove-btn {
+    font-size: 12px;
+    color: #c0392b;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+  .time-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .time-row span { font-size: 12px; color: #888; white-space: nowrap; }
+  input[type="time"] {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    background: #fff;
+    color: #1a1a1a;
+    -webkit-appearance: none;
+  }
+  .material-row { display: flex; align-items: center; gap: 8px; }
+  .material-row span { font-size: 12px; color: #888; white-space: nowrap; }
+  input[type="text"] {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+    color: #1a1a1a;
+  }
+  input[type="text"]:focus, input[type="time"]:focus, textarea:focus {
+    outline: none;
+    border-color: #1a1a1a;
+  }
+  .add-btn {
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: 1.5px dashed #ccc;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #888;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .add-btn:active { background: #f0efe9; }
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    margin-top: 8px;
+    border-top: 1px solid #e8e6e0;
+  }
+  .total-label { font-size: 13px; color: #888; }
+  .total-val { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+  textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+    min-height: 80px;
+    background: #fff;
+    color: #1a1a1a;
+    font-family: inherit;
+  }
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+  .submit-btn:active { opacity: 0.85; }
+  .submit-btn:disabled { opacity: 0.5; }
+  .msg {
+    text-align: center;
+    font-size: 14px;
+    padding: 12px;
+    border-radius: 10px;
+    margin-top: 8px;
+    display: none;
+    line-height: 1.5;
+  }
+  .msg.success { color: #27ae60; background: #eafaf1; display: block; }
+  .msg.error { color: #c0392b; background: #fdf0ef; display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📚 今日の勉強報告</h1>
+  <p>やった内容を正直に記録しよう</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <div class="card-label">勉強セッション</div>
+    <div id="sessions"></div>
+    <button class="add-btn" onclick="addSession()">＋ セッションを追加</button>
+    <div class="total-row">
+      <span class="total-label">合計時間</span>
+      <span class="total-val" id="total-time">0分</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">やった内容</div>
+    <textarea id="content" placeholder="例：数学 p.23〜28（二次方程式）&#10;英語 単語50個（ターゲット1900）"></textarea>
+  </div>
+
+  <div class="card">
+    <div class="card-label">わからなかったこと・明日の課題</div>
+    <textarea id="unclear" placeholder="例：因数分解の応用がまだできない。明日もう一度やる。"></textarea>
+  </div>
+
+  <button class="submit-btn" id="submit-btn" onclick="submitReport()">報告を送る →</button>
+  <div class="msg" id="msg"></div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  const SERVICE_ID = 'yusukeee07100710';
+  const TEMPLATE_ID = 'qdb8ly2';
+  const PUBLIC_KEY = '7Y2MjUxaDJK1ABhFO';
+
+  emailjs.init(PUBLIC_KEY);
+
+  let count = 0;
+
+  function addSession() {
+    count++;
+    const id = count;
+    const div = document.createElement('div');
+    div.className = 'session-block';
+    div.id = 'sess-' + id;
+    div.innerHTML = `
+      <div class="session-header">
+        <span class="session-num">セッション ${id}</span>
+        <button class="remove-btn" onclick="removeSession(${id})">✕ 削除</button>
+      </div>
+      <div class="time-row">
+        <span>開始</span>
+        <input type="time" id="s-${id}" onchange="calcTotal()" />
+        <span>終了</span>
+        <input type="time" id="e-${id}" onchange="calcTotal()" />
+      </div>
+      <div class="material-row">
+        <span>教材</span>
+        <input type="text" id="m-${id}" placeholder="例：数学、英語単語帳" />
+      </div>
+    `;
+    document.getElementById('sessions').appendChild(div);
+    calcTotal();
+  }
+
+  function removeSession(id) {
+    const el = document.getElementById('sess-' + id);
+    if (el) el.remove();
+    calcTotal();
+  }
+
+  function calcTotal() {
+    let total = 0;
+    document.querySelectorAll('.session-block').forEach(b => {
+      const id = b.id.replace('sess-', '');
+      const s = document.getElementById('s-' + id);
+      const e = document.getElementById('e-' + id);
+      if (s && e && s.value && e.value) {
+        const [sh, sm] = s.value.split(':').map(Number);
+        const [eh, em] = e.value.split(':').map(Number);
+        const diff = (eh * 60 + em) - (sh * 60 + sm);
+        if (diff > 0) total += diff;
+      }
+    });
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    document.getElementById('total-time').textContent =
+      h > 0 ? `${h}時間${m > 0 ? m + '分' : ''}` : `${m}分`;
+  }
+
+  function buildParams() {
+    const d = new Date();
+    const date = `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}（${'日月火水木金土'[d.getDay()]}）`;
+    let sessions = '';
+    document.querySelectorAll('.session-block').forEach(b => {
+      const id = b.id.replace('sess-', '');
+      const s = document.getElementById('s-' + id);
+      const e = document.getElementById('e-' + id);
+      const m = document.getElementById('m-' + id);
+      if (s && s.value && e && e.value) {
+        sessions += `\n  ${s.value}〜${e.value}　${m ? m.value : ''}`;
+      }
+    });
+    const total = document.getElementById('total-time').textContent;
+    const content = document.getElementById('content').value.trim() || '（未記入）';
+    const unclear = document.getElementById('unclear').value.trim() || '（未記入）';
+    return {
+      subject: `📚 勉強報告 ${date}`,
+      body: `勉強報告 ${date}\n━━━━━━━━━━━━\n合計：${total}${sessions}\n\nやった内容：\n${content}\n\nわからなかったこと：\n${unclear}`
+    };
+  }
+
+  function showMsg(text, type) {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = 'msg ' + type;
+  }
+
+  async function submitReport() {
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = '送信中...';
+
+    try {
+      const params = buildParams();
+      await emailjs.send(SERVICE_ID, TEMPLATE_ID, params);
+      showMsg('✅ 送信完了！お疲れさまでした。', 'success');
+    } catch(e) {
+      showMsg('送信に失敗しました。Wi-Fiまたはモバイルデータを確認してください。', 'error');
+      console.error(e);
+    }
+
+    btn.disabled = false;
+    btn.textContent = '報告を送る →';
+  }
+
+  addSession();
+
+  window.addEventListener('load', () => {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const startEl = document.getElementById('s-1');
+    if (startEl) startEl.value = `${hh}:${mm}`;
+  });
+</script>
+
+</body>
+</html>
